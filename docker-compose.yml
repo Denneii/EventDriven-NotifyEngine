@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Banco de Dados Relacional
+  postgres:
+    image: postgres:16-alpine
+    container_name: notify-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: notify_engine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Cache e Rate Limiting
+  redis:
+    image: redis:7-alpine
+    container_name: notify-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # Message Broker (Fila)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: notify-rabbitmq
+    ports:
+      - "5672:5672"   # Porta do protocolo AMQP (onde a API e o Worker conectam)
+      - "15672:15672" # Porta da interface de gerenciamento visual
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
