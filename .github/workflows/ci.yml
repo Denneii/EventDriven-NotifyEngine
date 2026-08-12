@@ -1,0 +1,42 @@
+name: CI Pipeline - EventDriven NotifyEngine
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build & Test Java Services
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Setup do Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build e Testes - Notify API
+        run: |
+          cd notify-api
+          chmod +x ./mvnw
+          ./mvnw clean verify
+
+      - name: Build e Testes - Notify Worker
+        run: |
+          cd notify-worker
+          chmod +x ./mvnw
+          ./mvnw clean verify
+
+      # Aqui simulamos o build das imagens Docker para garantir que o Dockerfile não tem erros
+      - name: Build Docker Image - API
+        run: docker build -t notify-api:latest ./notify-api
+
+      - name: Build Docker Image - Worker
+        run: docker build -t notify-worker:latest ./notify-worker
